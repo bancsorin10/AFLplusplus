@@ -393,7 +393,7 @@ static void afl_intelpt_harness_srv(afl_forkserver_t *fsrv, char **argv) {
     }
     // abort();
 
-    void (*old_sigchld_handler)(int) = signal(SIGCHLD, SIG_DFL);
+    // void (*old_sigchld_handler)(int) = signal(SIGCHLD, SIG_DFL);
 
     while (1) {
         uint32_t was_killed;
@@ -413,12 +413,12 @@ static void afl_intelpt_harness_srv(afl_forkserver_t *fsrv, char **argv) {
             setenv("LD_PRELOAD", "./afl-intel-pt-harness.so", 1);
 
             // enable terminating on sigpipe in the childs
-            struct sigaction sa;
-            memset((char *)&sa, 0, sizeof(sa));
-            sa.sa_handler = SIG_DFL;
-            sigaction(SIGPIPE, &sa, NULL);
+            // struct sigaction sa;
+            // memset((char *)&sa, 0, sizeof(sa));
+            // sa.sa_handler = SIG_DFL;
+            // sigaction(SIGPIPE, &sa, NULL);
 
-            signal(SIGCHLD, old_sigchld_handler);
+            // signal(SIGCHLD, old_sigchld_handler);
 
             execv(fsrv->target_path, argv);
 
@@ -432,7 +432,7 @@ static void afl_intelpt_harness_srv(afl_forkserver_t *fsrv, char **argv) {
         }
 
         wait(&status);
-        status = FS_NEW_ERROR;
+        // status = FS_NEW_ERROR;
 
         // thing has crashed or was killed one of the 2
         if (write(FORKSRV_FD + 1, &child_pid, 4) != 4) { exit(0); }
