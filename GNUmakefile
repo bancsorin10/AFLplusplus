@@ -14,7 +14,7 @@
 #
 
 # For Heiko:
-#TEST_MMAP=1
+TEST_MMAP=1
 # the hash character is treated differently in different make versions
 # so use a variable for '#'
 HASH=\#
@@ -467,6 +467,9 @@ afl-as: src/afl-as.c include/afl-as.h $(COMM_HDR) | test_x86
 	$(CC) $(CFLAGS) src/$@.c -o $@ $(LDFLAGS)
 	@ln -sf afl-as as
 
+src/afl-intel-pt-harness.so: $(COMM_HDR) src/afl-intel-pt-harness.c
+	gcc -Iinclude -Wall -Wextra -ggdb -fPIC -lxdc -shared src/afl-intel-pt-harness.c -o afl-intel-pt-harness.so
+
 src/afl-performance.o : $(COMM_HDR) src/afl-performance.c include/hash.h
 	$(CC) $(CFLAGS) $(CFLAGS_OPT) $(SPECIAL_PERFORMANCE) -Iinclude -c src/afl-performance.c -o src/afl-performance.o
 
@@ -478,6 +481,8 @@ src/afl-forkserver.o : $(COMM_HDR) src/afl-forkserver.c include/forkserver.h
 
 src/afl-sharedmem.o : $(COMM_HDR) src/afl-sharedmem.c include/sharedmem.h
 	$(CC) $(CFLAGS) $(CFLAGS_FLTO) $(SPECIAL_PERFORMANCE) -c src/afl-sharedmem.c -o src/afl-sharedmem.o
+
+afl-intel-pt-harness: src/afl-intel-pt-harness.so
 
 afl-fuzz: $(COMM_HDR) include/afl-fuzz.h $(AFL_FUZZ_FILES) src/afl-common.o src/afl-sharedmem.o src/afl-forkserver.o src/afl-performance.o | test_x86
 	$(CC) $(CFLAGS) $(COMPILE_STATIC) $(CFLAGS_FLTO) $(SPECIAL_PERFORMANCE) $(AFL_FUZZ_FILES) src/afl-common.o src/afl-sharedmem.o src/afl-forkserver.o src/afl-performance.o -o $@ $(PYFLAGS) $(LDFLAGS) -lm

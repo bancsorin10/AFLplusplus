@@ -1871,6 +1871,8 @@ int main(int argc, char **argv_orig, char **envp) {
 
   afl->fsrv.use_fauxsrv = afl->non_instrumented_mode == 1 || afl->no_forkserver;
   afl->fsrv.max_length = afl->max_length;
+  // afl->fsrv.use_intelpt_harness_srv = afl->intelpt_harness == 1;
+  afl->fsrv.use_intelpt_harness_srv = true;
 
   #ifdef __linux__
   if (!afl->fsrv.nyx_mode) {

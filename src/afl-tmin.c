@@ -1098,6 +1098,10 @@ int main(int argc, char **argv_orig, char **envp) {
 
   }
 
+  if (getenv("AFL_INTELPT_HARNESS")) {
+      fsrv->use_intelpt_harness_srv = true;
+  }
+
   setenv("AFL_NO_AUTODICT", "1", 1);
 
   /* initialize cmplog_mode */

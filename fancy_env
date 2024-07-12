@@ -1,0 +1,5 @@
+
+export AFL_INTELPT_HARNESS=1
+export AFL_SKIP_BIN_CHECK=1
+export AFL_NO_FORKSRV=1
+export AFL_DEBUG=1

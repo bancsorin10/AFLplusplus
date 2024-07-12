@@ -1281,7 +1281,8 @@ void perform_dry_run(afl_state_t *afl) {
         }
 
 #endif
-        FATAL("No instrumentation detected");
+        break ;
+        // FATAL("No instrumentation detected");
 
       case FSRV_RUN_NOBITS:
 

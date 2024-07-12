@@ -380,6 +380,67 @@ restart_select:
 
 }
 
+/* special launching option for using a harness using intelpt */
+static void afl_intelpt_harness_srv(afl_forkserver_t *fsrv, char **argv) {
+
+    unsigned char tmp[4] = {0, 0, 0, 0};
+    pid_t         child_pid;
+
+    if (!be_quiet) { ACTF("Using intel pt with harness"); }
+
+    if (write(FORKSRV_FD + 1, tmp, 4) != 4) {
+        abort();
+    }
+    // abort();
+
+    void (*old_sigchld_handler)(int) = signal(SIGCHLD, SIG_DFL);
+
+    while (1) {
+        uint32_t was_killed;
+        u32      status;
+
+        if (read(FORKSRV_FD, &was_killed, 4) != 4) { exit(0); }
+
+        child_pid = fork();
+
+        if (child_pid < 0) { PFATAL("fork failed"); }
+
+        if (!child_pid) {
+            close(fsrv->out_dir_fd);
+            close(fsrv->dev_null_fd);
+            close(fsrv->dev_urandom_fd);
+
+            setenv("LD_PRELOAD", "./afl-intel-pt-harness.so", 1);
+
+            // enable terminating on sigpipe in the childs
+            struct sigaction sa;
+            memset((char *)&sa, 0, sizeof(sa));
+            sa.sa_handler = SIG_DFL;
+            sigaction(SIGPIPE, &sa, NULL);
+
+            signal(SIGCHLD, old_sigchld_handler);
+
+            execv(fsrv->target_path, argv);
+
+            /* Use a distinctive bitmap signature to tell the parent about execv()
+               falling through. */
+
+            *(u32 *)fsrv->trace_bits = EXEC_FAIL_SIG;
+
+            WARNF("Execv failed in fauxserver.");
+            break;
+        }
+
+        wait(&status);
+        status = FS_NEW_ERROR;
+
+        // thing has crashed or was killed one of the 2
+        if (write(FORKSRV_FD + 1, &child_pid, 4) != 4) { exit(0); }
+        if (write(FORKSRV_FD + 1, &status, 4) != 4) { exit(0); }
+        // exit(0);
+    }
+}
+
 /* Internal forkserver for non_instrumented_mode=1 and non-forkserver mode runs.
   It execvs for each fork, forwarding exit codes and child pids to afl. */
 
@@ -388,6 +449,8 @@ static void afl_fauxsrv_execv(afl_forkserver_t *fsrv, char **argv) {
   unsigned char tmp[4] = {0, 0, 0, 0};
   pid_t         child_pid;
 
+  printf("fucckc\n");
+  abort();
   if (!be_quiet) { ACTF("Using Fauxserver:"); }
 
   /* Phone home and tell the parent that we're OK. If parent isn't there,
@@ -845,6 +908,21 @@ void afl_fsrv_start(afl_forkserver_t *fsrv, char **argv,
 
     if (!be_quiet) { ACTF("Using AFL++ faux forkserver..."); }
     fsrv->init_child_func = afl_fauxsrv_execv;
+
+  }
+
+  if (fsrv->use_intelpt_harness_srv) {
+
+    /* TODO: Come up with some nice way to initialize this all */
+
+    if (fsrv->init_child_func != fsrv_exec_child) {
+
+      FATAL("Different forkserver not compatible with fauxserver");
+
+    }
+
+    if (!be_quiet) { ACTF("Using AFL++ faux forkserver..."); }
+    fsrv->init_child_func = afl_intelpt_harness_srv;
 
   }
 
