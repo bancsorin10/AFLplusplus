@@ -428,8 +428,8 @@ static __attribute__((constructor)) void main(int ac, char **av) {
 
     // raise(SIGTRAP);
     char map[4096];
-    // uint64_t main_off = 0x1165;
     uint64_t main_off = 0x1175;
+    // uint64_t main_off = 0x1279;
     struct bin_map_s *cache_map;
 
     read_map(getpid(), map);

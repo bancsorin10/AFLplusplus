@@ -433,10 +433,12 @@ static void afl_intelpt_harness_srv(afl_forkserver_t *fsrv, char **argv) {
 
         wait(&status);
         // status = FS_NEW_ERROR;
+        // status = 0x8b;
 
         // thing has crashed or was killed one of the 2
         if (write(FORKSRV_FD + 1, &child_pid, 4) != 4) { exit(0); }
-        if (write(FORKSRV_FD + 1, &status, 4) != 4) { exit(0); }
+        if (write(FORKSRV_FD + 1, &status, 4) != 4) { exit(1); }
+        // abort();
         // exit(0);
     }
 }
